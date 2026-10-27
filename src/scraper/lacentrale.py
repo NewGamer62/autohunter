@@ -56,7 +56,7 @@ class LaCentraleScraper(BaseScraper):
         try:
             ads = self._fetch_via_playwright(target_url)
         except Exception as e:
-            logger.error(f"[La Centrale] Erreur extraction Playwright: {e}")
+            logger.warning(f"[La Centrale] Protection active ou interruption de navigation : {e}")
 
         return ads
 
@@ -82,12 +82,31 @@ class LaCentraleScraper(BaseScraper):
             try:
                 page.goto(url, wait_until="domcontentloaded", timeout=30000)
                 page.wait_for_timeout(3000)
-                next_data_handle = page.query_selector("script#__NEXT_DATA__")
-                if next_data_handle:
-                    ads = self._parse_json_data(next_data_handle.inner_text())
+
+                # Détection immédiate du challenge DataDome / Captcha pour éviter les erreurs de navigation
+                content = page.content()
+                if "captcha-delivery.com" in content or ("datadome" in content.lower() and "captcha" in content.lower()):
+                    logger.warning("[La Centrale] Challenge DataDome / Captcha actif (Leboncoin prend le relais pour ce cycle).")
+                    return []
+
+                # Récupération sécurisée des données structurées
+                try:
+                    next_data_handle = page.query_selector("script#__NEXT_DATA__")
+                    if next_data_handle:
+                        ads = self._parse_json_data(next_data_handle.inner_text())
+                except Exception as ex:
+                    logger.debug(f"[La Centrale] Erreur lecture NEXT_DATA : {ex}")
+
                 if not ads:
-                    ads = self._parse_html(page.content())
-                logger.info(f"[La Centrale] {len(ads)} annonces extraites via Playwright.")
+                    try:
+                        ads = self._parse_html(page.content())
+                    except Exception as ex:
+                        logger.debug(f"[La Centrale] Erreur lecture DOM : {ex}")
+
+                if ads:
+                    logger.info(f"[La Centrale] {len(ads)} annonces extraites via Playwright.")
+            except Exception as e:
+                logger.warning(f"[La Centrale] Erreur durant la navigation : {e}")
             finally:
                 browser.close()
 
