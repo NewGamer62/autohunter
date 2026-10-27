@@ -86,7 +86,7 @@ class AdRepository:
         with self._get_connection() as conn:
             conn.execute("UPDATE ads SET alerted = 1 WHERE id = ?", (ad_id,))
 
-    def get_top_deals(self, limit: int = 10, min_score: int = 80) -> List[Dict[str, Any]]:
+    def get_top_deals(self, limit: int = 10, min_score: int = 65) -> List[Dict[str, Any]]:
         with self._get_connection() as conn:
             cur = conn.execute("""
                 SELECT id, source, url, title, price, year, mileage, score, verdict, audit_json, created_at
