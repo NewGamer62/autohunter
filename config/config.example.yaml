@@ -41,7 +41,7 @@ daemon:
   # Intervalle de scraping aléatoire (en secondes) pour éviter le blocage IP
   min_delay_seconds: 480   # 8 minutes
   max_delay_seconds: 900   # 15 minutes
-  headless_browser: true
+  headless_browser: false
 
 notifier:
   # Renseigne ton URL de webhook Discord ici

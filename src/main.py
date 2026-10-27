@@ -48,9 +48,9 @@ class AutoHunterOrchestrator:
         discord_url = self.config.get("notifier", {}).get("discord_webhook_url", "")
         self.notifier = DiscordNotifier(webhook_url=discord_url)
 
-        headless = self.config.get("daemon", {}).get("headless_browser", True)
+        headless = self.config.get("daemon", {}).get("headless_browser", False)
         self.scrapers = [
-            LaCentraleScraper(),
+            LaCentraleScraper(headless=headless),
             LeboncoinScraper(headless=headless)
         ]
 

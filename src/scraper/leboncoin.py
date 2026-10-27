@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class LeboncoinScraper(BaseScraper):
     SEARCH_BASE_URL = "https://www.leboncoin.fr/recherche"
 
-    def __init__(self, headless: bool = True):
+    def __init__(self, headless: bool = False):
         self.headless = headless
 
     def fetch_latest_ads(self, search_config: Dict[str, Any]) -> List[CarAd]:
@@ -27,7 +27,7 @@ class LeboncoinScraper(BaseScraper):
         try:
             return self._fetch_via_playwright(target_url)
         except ImportError:
-            logger.warning("[Leboncoin] Module 'playwright' non installé. Pour contourner le bot-shield DataDome, exécutez: pip install playwright && playwright install chromium")
+            logger.warning("[Leboncoin] Module 'playwright' non installé. Exécutez : pip install playwright && playwright install chromium")
             return []
         except Exception as e:
             logger.error(f"[Leboncoin] Erreur scraping : {e}")
@@ -38,38 +38,37 @@ class LeboncoinScraper(BaseScraper):
 
         ads: List[CarAd] = []
         with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=self.headless,
-                args=[
+            launch_kwargs = {
+                "headless": self.headless,
+                "args": [
                     "--disable-blink-features=AutomationControlled",
                     "--no-sandbox",
-                    "--disable-infobars",
-                    "--disable-dev-shm-usage"
-                ]
-            )
+                    "--disable-infobars"
+                ],
+                "ignore_default_args": ["--enable-automation"]
+            }
+
+            try:
+                # Utiliser Google Chrome natif en priorité (évite 99% des blocages DataDome)
+                browser = p.chromium.launch(channel="chrome", **launch_kwargs)
+            except Exception:
+                browser = p.chromium.launch(**launch_kwargs)
+
             context = browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
                 locale="fr-FR",
                 viewport={"width": 1920, "height": 1080}
             )
-
-            # Injection du script anti-détection DataDome / bot
-            context.add_init_script("""
-                Object.defineProperty(navigator, 'webdriver', {
-                    get: () => undefined
-                });
-            """)
 
             page = context.new_page()
             logger.info(f"[Leboncoin] Navigation vers {url}")
             
             try:
                 page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                page.wait_for_timeout(3000) # Délai naturel
+                page.wait_for_timeout(3000)
 
                 # Vérification de présence du challenge DataDome
-                if "datadome" in page.content().lower() or "captcha" in page.content().lower():
-                    logger.warning("[Leboncoin] Challenge DataDome / Captcha détecté par Leboncoin.")
+                if "datadome" in page.content().lower() and "captcha" in page.content().lower():
+                    logger.warning("[Leboncoin] Challenge DataDome / Captcha actif.")
                     browser.close()
                     return []
 
@@ -78,7 +77,7 @@ class LeboncoinScraper(BaseScraper):
                 if next_data_handle:
                     raw_json = next_data_handle.inner_text()
                     ads = self._parse_lbc_next_data(raw_json)
-                    logger.info(f"[Leboncoin] {len(ads)} annonces extraites via __NEXT_DATA__.")
+                    logger.info(f"[Leboncoin] {len(ads)} annonces extraites avec succès.")
                 else:
                     logger.info("[Leboncoin] Pas de script __NEXT_DATA__, tentative extraction DOM...")
                     ads = self._parse_lbc_dom(page)
@@ -137,7 +136,6 @@ class LeboncoinScraper(BaseScraper):
 
     def _parse_lbc_dom(self, page) -> List[CarAd]:
         ads = []
-        # Sélecteurs DOM de secours
         cards = page.query_selector_all("a[data-test-id='ad']")
         for c in cards:
             try:

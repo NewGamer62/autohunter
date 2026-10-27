@@ -15,13 +15,15 @@ class LaCentraleScraper(BaseScraper):
     BASE_URL = "https://www.lacentrale.fr/listing"
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
+    def __init__(self, headless: bool = False):
+        self.headless = headless
+
     def fetch_latest_ads(self, search_config: Dict[str, Any]) -> List[CarAd]:
         ads = []
         max_price = search_config.get("max_price", 5000)
         min_price = search_config.get("min_price", 800)
         max_km = search_config.get("max_mileage", 210000)
         
-        # Paramètres de recherche La Centrale
         params = {
             "energies": "ess",
             "priceMax": str(max_price),
@@ -31,46 +33,89 @@ class LaCentraleScraper(BaseScraper):
         query_string = urllib.parse.urlencode(params)
         target_url = f"{self.BASE_URL}?{query_string}"
 
-        req = urllib.request.Request(
-            target_url,
-            headers={
-                "User-Agent": self.USER_AGENT,
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
-            }
-        )
-
+        # 1. Tentative HTTP directe
         try:
-            with urllib.request.urlopen(req, timeout=15) as response:
+            req = urllib.request.Request(
+                target_url,
+                headers={
+                    "User-Agent": self.USER_AGENT,
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                    "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+                }
+            )
+            with urllib.request.urlopen(req, timeout=10) as response:
                 html = response.read().decode("utf-8", errors="ignore")
                 ads = self._parse_html(html)
-                logger.info(f"[La Centrale] {len(ads)} annonces extraites avec succès.")
-        except Exception as e:
-            logger.warning(f"[La Centrale] Échec de récupération direct HTTP : {e}")
+                if ads:
+                    logger.info(f"[La Centrale] {len(ads)} annonces extraites via HTTP.")
+                    return ads
+        except Exception:
+            logger.debug("[La Centrale] Blocage HTTP détecté, basculement en mode Playwright stealth...")
 
+        # 2. Fallback Playwright avec Chrome natif
+        try:
+            ads = self._fetch_via_playwright(target_url)
+        except Exception as e:
+            logger.error(f"[La Centrale] Erreur extraction Playwright: {e}")
+
+        return ads
+
+    def _fetch_via_playwright(self, url: str) -> List[CarAd]:
+        from playwright.sync_api import sync_playwright
+        ads = []
+
+        with sync_playwright() as p:
+            launch_kwargs = {
+                "headless": self.headless,
+                "args": [
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-sandbox"
+                ],
+                "ignore_default_args": ["--enable-automation"]
+            }
+            try:
+                browser = p.chromium.launch(channel="chrome", **launch_kwargs)
+            except Exception:
+                browser = p.chromium.launch(**launch_kwargs)
+
+            page = browser.new_page()
+            try:
+                page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                page.wait_for_timeout(3000)
+                next_data_handle = page.query_selector("script#__NEXT_DATA__")
+                if next_data_handle:
+                    ads = self._parse_json_data(next_data_handle.inner_text())
+                if not ads:
+                    ads = self._parse_html(page.content())
+                logger.info(f"[La Centrale] {len(ads)} annonces extraites via Playwright.")
+            finally:
+                browser.close()
+
+        return ads
+
+    def _parse_json_data(self, raw_json: str) -> List[CarAd]:
+        ads = []
+        try:
+            data = json.loads(raw_json)
+            listings = data.get("props", {}).get("pageProps", {}).get("searchResult", {}).get("items", [])
+            for item in listings:
+                ad = self._parse_json_item(item)
+                if ad:
+                    ads.append(ad)
+        except Exception as e:
+            logger.debug(f"[La Centrale] Erreur parsing JSON: {e}")
         return ads
 
     def _parse_html(self, html: str) -> List[CarAd]:
         ads = []
         soup = BeautifulSoup(html, "html.parser")
 
-        # Recherche de données structurées JSON NEXT_DATA si présentes
         script_tag = soup.find("script", id="__NEXT_DATA__")
         if script_tag and script_tag.string:
-            try:
-                data = json.loads(script_tag.string)
-                # Parcours récursif pour trouver la liste des annonces
-                listings = data.get("props", {}).get("pageProps", {}).get("searchResult", {}).get("items", [])
-                for item in listings:
-                    ad = self._parse_json_item(item)
-                    if ad:
-                        ads.append(ad)
-                if ads:
-                    return ads
-            except Exception as ex:
-                logger.debug(f"[La Centrale] Erreur parsing __NEXT_DATA__: {ex}")
+            parsed = self._parse_json_data(script_tag.string)
+            if parsed:
+                return parsed
 
-        # Fallback parsing HTML standard sur les cartes d'annonces
         cards = soup.select("div[class*='searchCard'], a[class*='searchCard']")
         for card in cards:
             try:
@@ -81,7 +126,6 @@ class LaCentraleScraper(BaseScraper):
                 href = url_elem["href"]
                 full_url = f"https://www.lacentrale.fr{href}" if href.startswith("/") else href
                 
-                # ID annonce depuis l'URL (ex: W102030405)
                 ad_id_match = re.search(r"auto-occasion-annonce-([a-zA-Z0-9]+)\.html", href)
                 ad_id = f"lc_{ad_id_match.group(1)}" if ad_id_match else f"lc_{hash(full_url)}"
 
@@ -95,7 +139,6 @@ class LaCentraleScraper(BaseScraper):
                     if price_digits:
                         price = float(price_digits)
 
-                # Année et Kilométrage
                 year = None
                 mileage = None
                 meta_elems = card.select("[class*='characteristic'], [class*='tag']")
