@@ -23,6 +23,7 @@ htmlcov/
 # Configuration privée / secrets
 .env
 *.local.yaml
+config/config.yaml
 
 # OS & Editeurs
 .DS_Store

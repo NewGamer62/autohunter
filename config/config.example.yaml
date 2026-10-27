@@ -1,4 +1,5 @@
 # Configuration générale de recherche et d'audit AutoHunter
+# Copiez ce fichier vers config/config.yaml et complétez votre webhook Discord.
 
 search:
   # Filtres de prix (EUR)

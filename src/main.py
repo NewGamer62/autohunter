@@ -6,6 +6,11 @@ import time
 from pathlib import Path
 import yaml
 
+# S'assurer que la racine du projet est dans sys.path (permet d'exécuter `python src/main.py` sans ModuleNotFoundError)
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 # Forcer l'encodage UTF-8 pour la console Windows
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
