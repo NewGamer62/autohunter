@@ -1,0 +1,139 @@
+{
+  "golden_engines": [
+    {
+      "brand": "Toyota",
+      "engines": ["1.0", "1.3", "1.33", "1.4 D-4D", "1.5"],
+      "models": ["Yaris", "Aygo", "Corolla", "Auris"],
+      "reliability_score": 30,
+      "notes": "Moteurs essence VVT-i à chaîne quasi indestructibles (1KR-FE, 2SZ-FE). Entretien économique."
+    },
+    {
+      "brand": "Honda",
+      "engines": ["1.2", "1.3", "1.4", "1.8"],
+      "models": ["Jazz", "Civic"],
+      "reliability_score": 30,
+      "notes": "i-DSI et i-VTEC atmosphériques à chaîne. Référence mondiale de longévité mécanique."
+    },
+    {
+      "brand": "Renault",
+      "engines": ["1.2 16v", "1.4 16v", "1.6 16v", "1.2"],
+      "models": ["Clio", "Twingo", "Modus", "Megane", "Kangoo"],
+      "reliability_score": 28,
+      "notes": "Blocs D4F (1.2 16v), K4J (1.4 16v) et K4M (1.6 16v). Pièces abondantes et très peu chères."
+    },
+    {
+      "brand": "Peugeot",
+      "engines": ["1.1", "1.4", "1.6"],
+      "models": ["206", "106", "107", "207"],
+      "reliability_score": 26,
+      "notes": "Moteurs TU atmosphériques uniquement (TU1, TU3, TU5). Rustiques, simples et réparables partout."
+    },
+    {
+      "brand": "Citroen",
+      "engines": ["1.1", "1.4", "1.6"],
+      "models": ["C2", "C3", "Saxo", "C1"],
+      "reliability_score": 26,
+      "notes": "Moteurs TU (C2/C3 phase 1 et 2) et moteur 1.0 Toyota sur C1. Éviter les boîtes Sensodrive."
+    },
+    {
+      "brand": "Alfa Romeo",
+      "engines": ["1.4"],
+      "models": ["Mito"],
+      "reliability_score": 27,
+      "notes": "Bloc 1.4 FIRE atmosphérique 70/78/95/105 ch (moteur Fiat éprouvé sans turbo ni système MultiAir)."
+    },
+    {
+      "brand": "Volkswagen",
+      "engines": ["1.6"],
+      "models": ["Golf", "Polo", "Leon", "Ibiza", "A3"],
+      "reliability_score": 27,
+      "notes": "Bloc 1.6 MPI 102 ch (8 soupapes sans turbo ni injection directe FSI). Robuste et compatible éthanol."
+    },
+    {
+      "brand": "Volvo",
+      "engines": ["1.6", "1.8", "2.0"],
+      "models": ["C30", "S40", "V50"],
+      "reliability_score": 28,
+      "notes": "Blocs essence Duratec atmosphériques partagés avec Ford. Très sains et fiables."
+    },
+    {
+      "brand": "Ford",
+      "engines": ["1.25", "1.4", "1.6"],
+      "models": ["Fiesta", "Fusion", "Focus"],
+      "reliability_score": 27,
+      "notes": "Moteurs Duratec / Zetec essence atmosphériques à courroie classique. Simples et fiables."
+    },
+    {
+      "brand": "Suzuki",
+      "engines": ["1.3", "1.5"],
+      "models": ["Swift", "Ignis", "Splash"],
+      "reliability_score": 28,
+      "notes": "Blocs essence japonais à chaîne. Excellente longévité mécanique."
+    }
+  ],
+  "blacklisted_engines": [
+    {
+      "name": "1.2 PureTech / EB2",
+      "brands": ["Peugeot", "Citroen", "DS", "Opel"],
+      "patterns": ["puretech", "1.2 vti", "eb2", "1.2 pure tech"],
+      "reason": "Courroie de distribution immergée dans l'huile qui se désagrège, bouche la crépine et détruit le moteur. Casse moteur fréquente avant 100 000 km.",
+      "severity": "CRITICAL"
+    },
+    {
+      "name": "1.4 / 1.6 VTi & THP (Moteurs Prince / EP3 / EP6)",
+      "brands": ["Peugeot", "Citroen", "Mini", "BMW"],
+      "patterns": ["vti", "thp", "1.4 vti", "1.6 vti", "1.6 thp", "ep6", "ep3"],
+      "reason": "Tendeur de chaîne défaillant, décalage de distribution, consommation d'huile démentielle (1L/1000km), casse turbo sur THP.",
+      "severity": "CRITICAL"
+    },
+    {
+      "name": "1.2 TCe (H5Ft)",
+      "brands": ["Renault", "Dacia", "Nissan"],
+      "patterns": ["1.2 tce", "tce 115", "tce 120", "tce 125", "tce 130", "h5ft"],
+      "reason": "Défaut d'étanchéité cylindres, surconsommation massive d'huile et casse des soupapes d'échappement.",
+      "severity": "CRITICAL"
+    },
+    {
+      "name": "VAG 1.4 TSI EA111 (122 / 140 / 170 ch)",
+      "brands": ["Volkswagen", "Seat", "Skoda", "Audi"],
+      "patterns": ["1.4 tsi", "tsi 122", "tsi 140", "tsi 170", "ea111"],
+      "reason": "Chaîne de distribution sous-dimensionnée qui s'allonge et détruit le moteur. Double suralimentation fragile sur 140/170 ch.",
+      "severity": "CRITICAL"
+    },
+    {
+      "name": "VAG 1.6 FSI",
+      "brands": ["Volkswagen", "Audi", "Seat", "Skoda"],
+      "patterns": ["1.6 fsi", "fsi 115"],
+      "reason": "Encrassement sévère des soupapes d'admission, bobines d'allumage fragiles, chaîne de distribution bruyante, aucun agrément.",
+      "severity": "HIGH"
+    },
+    {
+      "name": "VAG 1.9 TDI code moteur BXE",
+      "brands": ["Volkswagen", "Seat", "Skoda", "Audi"],
+      "patterns": ["bxe", "1.9 tdi 105 bxe"],
+      "reason": "Coussinets de bielle défectueux entraînant une rupture de bielle qui traverse le bloc moteur.",
+      "severity": "CRITICAL"
+    },
+    {
+      "name": "Alfa Romeo 1.4 MultiAir",
+      "brands": ["Alfa Romeo", "Fiat"],
+      "patterns": ["multiair", "multi air", "1.4 multiair"],
+      "reason": "Boîtier électro-hydraulique MultiAir extrêmement sensible à la qualité d'huile, panne fréquente à 1 200 € la pièce.",
+      "severity": "HIGH"
+    },
+    {
+      "name": "Alfa Romeo Twin Spark (147 / 156 / GT)",
+      "brands": ["Alfa Romeo"],
+      "patterns": ["twin spark", "twinspark", "ts 16v", "1.6 ts", "2.0 ts"],
+      "reason": "Courroie de distribution devant être remplacée tous les 3 ans ou 60 000 km sans exception. 80% des modèles d'occasion ont une distribution en sursis.",
+      "severity": "HIGH"
+    },
+    {
+      "name": "Boîtes robotisées simple embrayage",
+      "brands": ["Citroen", "Peugeot", "Renault", "Fiat"],
+      "patterns": ["sensodrive", "2-tronic", "2tronic", "quickshift", "dualogic"],
+      "reason": "Actionneurs de boîte et embrayage hydraulique fragiles, lenteur exaspérante et pannes immobilisantes coûteuses.",
+      "severity": "HIGH"
+    }
+  ]
+}

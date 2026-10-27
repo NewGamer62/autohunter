@@ -1,0 +1,51 @@
+# Configuration générale de recherche et d'audit AutoHunter
+
+search:
+  # Filtres de prix (EUR)
+  min_price: 800         # Élimine les annonces à 1 € ou "faire offre" pour pièces
+  max_price: 5000        # Budget plafond défini
+
+  # Filtres techniques
+  max_mileage: 210000    # Kilométrage max toléré
+  min_year: 2001         # Année minimale
+  fuel_types:
+    - "essence"          # Priorité absolue pour la simplicité et les ZFE
+
+  # Modèles recherchés (citadines économiques + compactes à flow)
+  target_models:
+    - "Yaris"
+    - "Clio"
+    - "Twingo"
+    - "Civic"
+    - "Mito"
+    - "C30"
+    - "Leon"
+    - "Golf"
+    - "206"
+    - "Swift"
+    - "Fiesta"
+    - "Jazz"
+
+  # Périmètre géographique
+  location: "France"     # France entière
+
+auditor:
+  # Seuil minimal de score pour déclencher une notification (sur 100)
+  min_alert_score: 80
+  
+  # Dépréciation maximale suspecte (au-delà de 65% sous la cote, flag arnaque mandat/acompte)
+  scam_discount_threshold_pct: 65
+
+daemon:
+  # Intervalle de scraping aléatoire (en secondes) pour éviter le blocage IP
+  min_delay_seconds: 480   # 8 minutes
+  max_delay_seconds: 900   # 15 minutes
+  headless_browser: true
+
+notifier:
+  # Renseigne ton URL de webhook Discord ici
+  # Exemple : https://discord.com/api/webhooks/123456789/abcdef...
+  discord_webhook_url: ""
+  
+  # Afficher les pépites détectées en direct dans la console / le terminal
+  log_to_console: true
