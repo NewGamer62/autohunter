@@ -12,18 +12,27 @@ search:
   fuel_types:
     - "essence"          # Priorité absolue pour la simplicité et les ZFE
 
-  # Modèles prioritaires : taillés pour conducteur grand gabarit (1m93 / Titan) avec du style et une mécanique saine
+  # Segments automobiles acceptés (Norme européenne) :
+  # A : Mini-citadines (Twingo, C1, C2, 107, Aygo, 500, Ka, Smart, Fox)
+  # B : Citadines polyvalentes (Clio, Fiesta, Polo, 207, 208, Yaris, C3, Swift, Jazz)
+  # C : Compactes & Coupés (Golf, Civic, Leon, Focus, C30, Mégane, Auris, Mazda 3)
+  # D : Berlines familiales & Routières (Laguna, Mondeo, Accord, Passat)
+  allowed_segments:
+    - "B"
+    - "C"
+    - "D"
+
+  # Modèles prioritaires (recherche ciblée / bonus de visibilité)
   target_models:
-    - "Civic"            # Honda Civic 8 (L'ovni : habitacle spacieux, assise basse, i-VTEC indestructible)
-    - "C30"              # Volvo C30 (Coupé suédois taillé pour les grands scandinaves, sièges royaux)
-    - "Leon"             # Seat Leon 2 (Châssis VAG, volant réglable profondeur/hauteur grand débattement)
-    - "Golf"             # Volkswagen Golf 5 (1.6 MPI 102 ch uniquement)
-    - "Focus"            # Ford Focus 2 (Très bonne position de conduite, moteurs Duratec)
-    - "Megane"           # Renault Mégane 3 Coupé/Berline (1.6 ou 2.0 16v, recul supérieur à Clio)
-    - "Mito"             # Alfa Romeo MiTo (1.4 FIRE atmosphérique, assise basse sportive)
-    - "Mazda 3"          # Mazda 3 (Moteurs essence MZR à chaîne, ergonomie japonaise basse)
-    - "Auris"            # Toyota Auris 1 (Bien plus habitable pour un grand que la Yaris)
-    - "Swift"            # Suzuki Swift (Pavillon haut droit offrant une garde au toit surprenante)
+    - "Civic"
+    - "C30"
+    - "Leon"
+    - "Golf"
+    - "Focus"
+    - "Megane"
+    - "Mito"
+    - "Mazda 3"
+    - "Auris"
 
   # Périmètre géographique
   location: "France"     # France entière

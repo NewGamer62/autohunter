@@ -43,7 +43,16 @@ class AutoHunterOrchestrator:
     def __init__(self, config_dir: Path):
         self.config = load_config(config_dir / "config.yaml")
         self.repo = AdRepository()
-        self.auditor = CarAuditor(config_dir / "engines_db.json")
+        
+        search_cfg = self.config.get("search", {})
+        allowed_segments = search_cfg.get("allowed_segments")
+        target_models = search_cfg.get("target_models", [])
+        self.auditor = CarAuditor(
+            engines_db_path=config_dir / "engines_db.json",
+            segments_db_path=config_dir / "segments_db.json",
+            allowed_segments=allowed_segments,
+            target_models=target_models
+        )
         
         discord_url = self.config.get("notifier", {}).get("discord_webhook_url", "")
         self.notifier = DiscordNotifier(webhook_url=discord_url)

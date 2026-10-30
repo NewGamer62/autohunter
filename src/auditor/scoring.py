@@ -2,7 +2,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Tuple
 
 from src.models import CarAd, AuditResult
 from src.auditor.semantic import SemanticAuditor, normalize_text
@@ -11,20 +11,56 @@ logger = logging.getLogger(__name__)
 
 
 class CarAuditor:
-    def __init__(self, engines_db_path: Optional[Path] = None):
-        if engines_db_path is None:
-            engines_db_path = Path(__file__).resolve().parent.parent.parent / "config" / "engines_db.json"
+    def __init__(
+        self,
+        engines_db_path: Optional[Path] = None,
+        segments_db_path: Optional[Path] = None,
+        allowed_segments: Optional[List[str]] = None,
+        target_models: Optional[List[str]] = None
+    ):
+        base_config_dir = Path(__file__).resolve().parent.parent.parent / "config"
         
-        self.engines_db = self._load_engines_db(engines_db_path)
+        if engines_db_path is None:
+            engines_db_path = base_config_dir / "engines_db.json"
+        if segments_db_path is None:
+            segments_db_path = base_config_dir / "segments_db.json"
+        
+        self.engines_db = self._load_json(engines_db_path)
+        self.segments_db = self._load_json(segments_db_path).get("segments", {})
+        self.allowed_segments = [s.upper() for s in allowed_segments] if allowed_segments else None
+        self.target_models = [m.lower() for m in target_models] if target_models else []
         self.semantic_auditor = SemanticAuditor()
 
-    def _load_engines_db(self, path: Path) -> Dict[str, Any]:
+    def _load_json(self, path: Path) -> Dict[str, Any]:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
-            logger.error(f"Erreur chargement base moteurs {path}: {e}")
-            return {"golden_engines": [], "blacklisted_engines": [], "unfit_models_titan": []}
+            logger.error(f"Erreur chargement fichier JSON {path}: {e}")
+            return {}
+
+    def identify_segment(self, norm_title: str, norm_text: str) -> Optional[Tuple[str, Dict[str, Any]]]:
+        """Identifie le segment automobile européen (A, B, C, D) selon le modèle."""
+        # Trier les modèles du plus long au plus court pour éviter les collisions (ex: 'c30' avant 'c3')
+        all_models = []
+        for seg_code, seg_info in self.segments_db.items():
+            for model_pattern in seg_info.get("models", []):
+                all_models.append((len(model_pattern), model_pattern, seg_code, seg_info))
+        all_models.sort(key=lambda x: x[0], reverse=True)
+
+        # 1. Vérification prioritaire sur le titre de l'annonce
+        for _, model_pattern, seg_code, seg_info in all_models:
+            pattern_re = r"\b" + re.escape(model_pattern.strip()) + r"\b"
+            if re.search(pattern_re, norm_title):
+                return seg_code, seg_info
+
+        # 2. Recherche de secours dans la description
+        for _, model_pattern, seg_code, seg_info in all_models:
+            pattern_re = r"\b" + re.escape(model_pattern.strip()) + r"\b"
+            if re.search(pattern_re, norm_text):
+                return seg_code, seg_info
+
+        return None
 
     def audit(self, ad: CarAd) -> AuditResult:
         full_text = f"{ad.title} {ad.description}"
@@ -38,19 +74,22 @@ class CarAuditor:
         disqualify_reason = None
 
         # -------------------------------------------------------------
-        # AXE 0 : Filtre Morphologie Titan (Conducteur grand gabarit 1m93)
-        # Élimination d'office des micro-citadines exiguës (C1, C2, 107, 206, Twingo, Aygo, etc.)
+        # AXE 0 : Filtrage par Segments Automobiles Européens (A, B, C, D)
         # -------------------------------------------------------------
-        for unfit in self.engines_db.get("unfit_models_titan", []):
-            for pattern in unfit["patterns"]:
-                # Vérification prioritaire sur le titre ou dans le texte
-                pattern_re = r"\b" + re.escape(pattern.strip()) + r"\b"
-                if re.search(pattern_re, norm_title) or re.search(pattern_re, norm_text):
-                    disqualified = True
-                    disqualify_reason = f"Gabarit inadapté grand conducteur (1m93) : {unfit['name']} ({unfit['reason']})"
-                    cons.append(f"INCOMPATIBLE GABARIT TITAN (1m93) : {unfit['name']}")
-                    break
-            if disqualified:
+        segment_match = self.identify_segment(norm_title, norm_text)
+        if segment_match:
+            seg_code, seg_info = segment_match
+            if self.allowed_segments is not None and seg_code not in self.allowed_segments:
+                disqualified = True
+                disqualify_reason = f"Segment automobile exclu par configuration : Segment {seg_code} ({seg_info['name']})"
+                cons.append(f"SEGMENT EXCLU : Segment {seg_code} ({seg_info['name']})")
+            else:
+                pros.append(f"Segment automobile : {seg_code} ({seg_info['name']})")
+
+        # Vérification des modèles favoris / ciblés
+        for target in self.target_models:
+            if re.search(r"\b" + re.escape(target) + r"\b", norm_title):
+                pros.append(f"Modèle prioritaire ciblé : {target.capitalize()}")
                 break
 
         # -------------------------------------------------------------

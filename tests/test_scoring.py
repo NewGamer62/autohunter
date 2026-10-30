@@ -8,8 +8,24 @@ CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
 
 
 @pytest.fixture
-def auditor():
-    return CarAuditor(CONFIG_DIR / "engines_db.json")
+def default_auditor():
+    """Auditeur par défaut excluant le Segment A (mini-citadines) au profit de B, C, D."""
+    return CarAuditor(
+        engines_db_path=CONFIG_DIR / "engines_db.json",
+        segments_db_path=CONFIG_DIR / "segments_db.json",
+        allowed_segments=["B", "C", "D"],
+        target_models=["Civic", "C30", "Golf"]
+    )
+
+
+@pytest.fixture
+def permissive_auditor():
+    """Auditeur autorisant tous les segments (A, B, C, D) sans restriction de gabarit."""
+    return CarAuditor(
+        engines_db_path=CONFIG_DIR / "engines_db.json",
+        segments_db_path=CONFIG_DIR / "segments_db.json",
+        allowed_segments=["A", "B", "C", "D"]
+    )
 
 
 @pytest.fixture
@@ -18,7 +34,7 @@ def temp_repo(tmp_path):
     return AdRepository(db_path=db_file)
 
 
-def test_puretech_is_disqualified(auditor):
+def test_puretech_is_disqualified(default_auditor):
     ad = CarAd(
         id="test_puretech",
         source="leboncoin",
@@ -29,13 +45,13 @@ def test_puretech_is_disqualified(auditor):
         mileage=95000,
         description="Belle 308 essence 1.2 puretech, CT ok."
     )
-    result = auditor.audit(ad)
+    result = default_auditor.audit(ad)
     assert result.is_disqualified is True
     assert result.total_score == 0
     assert "PureTech" in result.disqualification_reason
 
 
-def test_vag_tsi_ea111_is_disqualified(auditor):
+def test_vag_tsi_ea111_is_disqualified(default_auditor):
     ad = CarAd(
         id="test_tsi",
         source="leboncoin",
@@ -46,68 +62,63 @@ def test_vag_tsi_ea111_is_disqualified(auditor):
         mileage=140000,
         description="Golf 5 1.4 tsi avec toit ouvrant, bon état général."
     )
-    result = auditor.audit(ad)
+    result = default_auditor.audit(ad)
     assert result.is_disqualified is True
     assert result.total_score == 0
     assert "EA111" in result.disqualification_reason or "TSI" in result.disqualification_reason
 
 
-def test_citroen_c2_is_disqualified_for_titan(auditor):
-    """Vérifie que la Citroën C2 est immédiatement éliminée pour un conducteur d'1m93."""
-    ad = CarAd(
+def test_segment_a_excluded_when_not_allowed(default_auditor):
+    """Vérifie qu'une mini-citadine (Segment A : C2, Twingo) est exclue si Segment A n'est pas autorisé."""
+    ad_c2 = CarAd(
         id="test_c2",
         source="leboncoin",
-        url="https://leboncoin.fr/ad/c2_test",
-        title="Citroën C2 1.4 VTR Essence",
+        url="https://leboncoin.fr/ad/c2",
+        title="Citroën C2 1.4 Furio",
         price=2200,
         year=2006,
         mileage=110000,
-        description="Citroën C2 en très bon état, CT vierge, carnet d'entretien."
+        description="Citroën C2 essence, CT ok."
     )
-    result = auditor.audit(ad)
+    result = default_auditor.audit(ad_c2)
     assert result.is_disqualified is True
     assert result.total_score == 0
-    assert "1m93" in result.disqualification_reason or "titan" in result.disqualification_reason.lower()
+    assert "Segment A" in result.disqualification_reason
 
-
-def test_twingo_is_disqualified_for_titan(auditor):
-    """Vérifie que la Twingo est disqualifiée pour cause de gabarit insuffisant."""
-    ad = CarAd(
+    ad_twingo = CarAd(
         id="test_twingo",
         source="leboncoin",
-        url="https://leboncoin.fr/ad/twingo_test",
-        title="Renault Twingo 1.2 16v Expression",
-        price=1900,
+        url="https://leboncoin.fr/ad/twingo",
+        title="Renault Twingo 1.2 16v",
+        price=1800,
         year=2005,
         mileage=120000,
-        description="Twingo essence, CT valide."
+        description="Twingo essence, CT ok."
     )
-    result = auditor.audit(ad)
-    assert result.is_disqualified is True
-    assert result.total_score == 0
-    assert "1m93" in result.disqualification_reason or "titan" in result.disqualification_reason.lower()
+    result_twingo = default_auditor.audit(ad_twingo)
+    assert result_twingo.is_disqualified is True
+    assert "Segment A" in result_twingo.disqualification_reason
 
 
-def test_peugeot_206_is_disqualified_for_titan(auditor):
-    """Vérifie que la 206 (pédalier étroit et pas de recul) est disqualifiée."""
-    ad = CarAd(
-        id="test_206",
+def test_segment_a_accepted_when_allowed(permissive_auditor):
+    """Vérifie qu'une mini-citadine (Segment A) est acceptée si la config autorise le Segment A."""
+    ad_c2 = CarAd(
+        id="test_c2_allowed",
         source="leboncoin",
-        url="https://leboncoin.fr/ad/206_test",
-        title="Peugeot 206 1.4 75ch Quiksilver",
-        price=2300,
-        year=2004,
-        mileage=130000,
-        description="206 essence propre, distribution neuve."
+        url="https://leboncoin.fr/ad/c2_ok",
+        title="Citroën C2 1.4 Furio Essence",
+        price=2200,
+        year=2006,
+        mileage=110000,
+        description="Citroën C2 essence moteur TU, CT vierge, carnet d'entretien complet."
     )
-    result = auditor.audit(ad)
-    assert result.is_disqualified is True
-    assert result.total_score == 0
-    assert "1m93" in result.disqualification_reason or "titan" in result.disqualification_reason.lower()
+    result = permissive_auditor.audit(ad_c2)
+    assert result.is_disqualified is False
+    assert result.total_score >= 80
 
 
-def test_golden_volvo_c30_scores_high(auditor):
-    """Vérifie qu'un coupé stylé et taillé pour les grands (Volvo C30) obtient un score d'excellence."""
+def test_segment_c_golden_volvo_c30_scores_high(default_auditor):
+    """Vérifie qu'une compacte/coupé Segment C (Volvo C30) obtient un score d'excellence."""
     ad = CarAd(
         id="test_c30",
         source="leboncoin",
@@ -118,14 +129,14 @@ def test_golden_volvo_c30_scores_high(auditor):
         mileage=125000,
         description="Superbe Volvo C30 1.6 essence, 1ere main, CT vierge fait hier, carnet complet avec factures Volvo, dort au garage."
     )
-    result = auditor.audit(ad)
+    result = default_auditor.audit(ad)
     assert result.is_disqualified is False
     assert result.total_score >= 85
     assert result.engine_score >= 28
     assert result.verdict in ("PÉPITE ABSOLUE", "TRÈS BONNE AFFAIRE")
 
 
-def test_golden_honda_civic_scores_high(auditor):
+def test_segment_c_golden_honda_civic_scores_high(default_auditor):
     ad = CarAd(
         id="test_civic",
         source="lacentrale",
@@ -136,13 +147,13 @@ def test_golden_honda_civic_scores_high(auditor):
         mileage=115000,
         description="Honda Civic 1.8 i-vtec essence, 1ere main, CT ok, toutes factures disponibles."
     )
-    result = auditor.audit(ad)
+    result = default_auditor.audit(ad)
     assert result.is_disqualified is False
     assert result.total_score >= 80
     assert result.engine_score == 30
 
 
-def test_repository_save_and_deduplication(temp_repo, auditor):
+def test_repository_save_and_deduplication(temp_repo, default_auditor):
     ad = CarAd(
         id="ad_test_repo",
         source="leboncoin",
@@ -155,7 +166,7 @@ def test_repository_save_and_deduplication(temp_repo, auditor):
     )
     assert temp_repo.is_seen(ad.id) is False
     
-    res = auditor.audit(ad)
+    res = default_auditor.audit(ad)
     temp_repo.save_ad(ad, res)
 
     assert temp_repo.is_seen(ad.id) is True

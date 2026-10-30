@@ -1,0 +1,88 @@
+{
+  "segments": {
+    "A": {
+      "name": "Mini-citadines (Micro-cars / City cars)",
+      "description": "Véhicules ultra-compacts (< 3.70m), idéaux pour l'hypercentre urbain mais restreints en habitabilité et coffre.",
+      "models": [
+        "c1", "c2", "saxo", "ax", "ami",
+        "106", "107", "108",
+        "twingo",
+        "aygo", "iq",
+        "500", "fiat 500", "seicento", "cinquecento", "panda",
+        "ka", "ford ka",
+        "smart", "fortwo", "forfour",
+        "fox", "lupo", "up", "up!",
+        "adam", "agila",
+        "matiz", "spark",
+        "i10", "atos",
+        "picanto",
+        "mii", "arosa",
+        "citigo"
+      ]
+    },
+    "B": {
+      "name": "Citadines polyvalentes (Subcompact cars)",
+      "description": "Polyvalentes urbaines et périurbaines (3.70m à 4.10m), compromis classique coût/espace.",
+      "models": [
+        "clio", "modus",
+        "206", "207", "208", "peugeot 2008",
+        "c3", "ds3", "c3 picasso",
+        "polo",
+        "fiesta", "fusion", "ecosport",
+        "yaris", "urban cruiser",
+        "jazz",
+        "swift", "splash", "ignis",
+        "corsa", "meriva",
+        "ibiza",
+        "fabia",
+        "mito",
+        "mini", "cooper", "one",
+        "micra", "note",
+        "sandero",
+        "i20",
+        "rio"
+      ]
+    },
+    "C": {
+      "name": "Compactes, Coupés & Berlines compactes (Compact / Small family cars)",
+      "description": "Véhicules polyvalents et routiers (4.20m à 4.50m), habitabilité généreuse, ergonomie et confort grand gabarit.",
+      "models": [
+        "golf", "scirocco", "jetta", "beetle",
+        "civic",
+        "c30", "s40", "v50",
+        "leon", "toledo",
+        "focus", "c-max",
+        "megane", "mégane", "scenic", "scénic",
+        "307", "308",
+        "c4", "ds4", "c4 cactus",
+        "auris", "corolla", "prius",
+        "mazda 3", "mazda3",
+        "a3", "audi a3",
+        "serie 1", "série 1", "116i", "118i", "120i",
+        "147", "giulietta", "alfa gt",
+        "astra", "zafira",
+        "octavia",
+        "ceed", "c'eed",
+        "i30"
+      ]
+    },
+    "D": {
+      "name": "Berlines familiales & Routières (Large family cars)",
+      "description": "Grandes routières (> 4.60m) axées sur le confort autoroutier et les longs trajets.",
+      "models": [
+        "laguna", "talisman",
+        "406", "407", "508",
+        "c5",
+        "mondeo",
+        "passat",
+        "avensis",
+        "accord",
+        "serie 3", "série 3",
+        "a4", "audi a4",
+        "classe c", "classe-c",
+        "s60", "v60", "s80", "v70",
+        "mazda 6", "mazda6"
+      ]
+    }
+  }
+}
