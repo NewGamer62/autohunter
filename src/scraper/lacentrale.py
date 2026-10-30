@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import time
 import urllib.request
 import urllib.parse
 from bs4 import BeautifulSoup
@@ -56,7 +57,7 @@ class LaCentraleScraper(BaseScraper):
         try:
             ads = self._fetch_via_playwright(target_url)
         except Exception as e:
-            logger.warning(f"[La Centrale] Protection active ou interruption de navigation : {e}")
+            logger.warning(f"[La Centrale] Erreur globale extraction : {e}")
 
         return ads
 
@@ -81,30 +82,49 @@ class LaCentraleScraper(BaseScraper):
             page = browser.new_page()
             try:
                 page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                page.wait_for_timeout(3000)
+                
+                # Attente active et résiliente : laisse le temps au captcha de se résoudre
+                # et gère les rechargements/redirections sans crash Playwright.
+                start_time = time.time()
+                max_wait = 18 if not self.headless else 5
+                
+                while time.time() - start_time < max_wait:
+                    try:
+                        # Attendre que la navigation éventuelle soit stabilisée
+                        page.wait_for_load_state("domcontentloaded", timeout=2500)
+                        
+                        # 1. Vérifier si les données structurées sont présentes (post-captcha réussi)
+                        next_data_handle = page.query_selector("script#__NEXT_DATA__")
+                        if next_data_handle:
+                            raw_text = next_data_handle.inner_text()
+                            if raw_text and "searchResult" in raw_text:
+                                ads = self._parse_json_data(raw_text)
+                                if ads:
+                                    logger.info(f"[La Centrale] {len(ads)} annonces extraites avec succès après validation.")
+                                    return ads
 
-                # Détection immédiate du challenge DataDome / Captcha pour éviter les erreurs de navigation
-                content = page.content()
-                if "captcha-delivery.com" in content or ("datadome" in content.lower() and "captcha" in content.lower()):
-                    logger.warning("[La Centrale] Challenge DataDome / Captcha actif (Leboncoin prend le relais pour ce cycle).")
-                    return []
+                        # 2. Vérifier les cartes dans le DOM
+                        cards = page.query_selector_all("div[class*='searchCard'], a[class*='searchCard']")
+                        if len(cards) > 0:
+                            content = page.content()
+                            ads = self._parse_html(content)
+                            if ads:
+                                logger.info(f"[La Centrale] {len(ads)} annonces extraites via DOM.")
+                                return ads
 
-                # Récupération sécurisée des données structurées
-                try:
-                    next_data_handle = page.query_selector("script#__NEXT_DATA__")
-                    if next_data_handle:
-                        ads = self._parse_json_data(next_data_handle.inner_text())
-                except Exception as ex:
-                    logger.debug(f"[La Centrale] Erreur lecture NEXT_DATA : {ex}")
+                        # 3. Vérifier l'état du captcha
+                        content = page.content()
+                        if "captcha-delivery.com" in content or ("datadome" in content.lower() and "captcha" in content.lower()):
+                            logger.info("[La Centrale] Captcha à l'écran, en attente de passage / validation...")
+                    except Exception as loop_ex:
+                        # La page est en train de naviguer / recharger suite au captcha passé
+                        logger.debug(f"[La Centrale] Page en cours de redirection/navigation ({loop_ex.__class__.__name__}), attente...")
+                    
+                    time.sleep(1.5)
 
                 if not ads:
-                    try:
-                        ads = self._parse_html(page.content())
-                    except Exception as ex:
-                        logger.debug(f"[La Centrale] Erreur lecture DOM : {ex}")
+                    logger.warning("[La Centrale] Délai d'attente dépassé sans détection des annonces (Leboncoin prend le relais).")
 
-                if ads:
-                    logger.info(f"[La Centrale] {len(ads)} annonces extraites via Playwright.")
             except Exception as e:
                 logger.warning(f"[La Centrale] Erreur durant la navigation : {e}")
             finally:

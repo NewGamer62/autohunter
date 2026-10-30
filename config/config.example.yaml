@@ -12,20 +12,18 @@ search:
   fuel_types:
     - "essence"          # Priorité absolue pour la simplicité et les ZFE
 
-  # Modèles recherchés (citadines économiques + compactes à flow)
+  # Modèles prioritaires : taillés pour conducteur grand gabarit (1m93 / Titan) avec du style et une mécanique saine
   target_models:
-    - "Yaris"
-    - "Clio"
-    - "Twingo"
-    - "Civic"
-    - "Mito"
-    - "C30"
-    - "Leon"
-    - "Golf"
-    - "206"
-    - "Swift"
-    - "Fiesta"
-    - "Jazz"
+    - "Civic"            # Honda Civic 8 (L'ovni : habitacle spacieux, assise basse, i-VTEC indestructible)
+    - "C30"              # Volvo C30 (Coupé suédois taillé pour les grands scandinaves, sièges royaux)
+    - "Leon"             # Seat Leon 2 (Châssis VAG, volant réglable profondeur/hauteur grand débattement)
+    - "Golf"             # Volkswagen Golf 5 (1.6 MPI 102 ch uniquement)
+    - "Focus"            # Ford Focus 2 (Très bonne position de conduite, moteurs Duratec)
+    - "Megane"           # Renault Mégane 3 Coupé/Berline (1.6 ou 2.0 16v, recul supérieur à Clio)
+    - "Mito"             # Alfa Romeo MiTo (1.4 FIRE atmosphérique, assise basse sportive)
+    - "Mazda 3"          # Mazda 3 (Moteurs essence MZR à chaîne, ergonomie japonaise basse)
+    - "Auris"            # Toyota Auris 1 (Bien plus habitable pour un grand que la Yaris)
+    - "Swift"            # Suzuki Swift (Pavillon haut droit offrant une garde au toit surprenante)
 
   # Périmètre géographique
   location: "France"     # France entière

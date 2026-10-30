@@ -2,73 +2,113 @@
   "golden_engines": [
     {
       "brand": "Toyota",
-      "engines": ["1.0", "1.3", "1.33", "1.4 D-4D", "1.5"],
-      "models": ["Yaris", "Aygo", "Corolla", "Auris"],
+      "engines": ["1.0", "1.3", "1.33", "1.4 D-4D", "1.5", "1.6", "1.8"],
+      "models": ["Auris", "Corolla", "Avensis", "Yaris"],
       "reliability_score": 30,
-      "notes": "Moteurs essence VVT-i à chaîne quasi indestructibles (1KR-FE, 2SZ-FE). Entretien économique."
+      "notes": "Moteurs essence VVT-i à chaîne quasi indestructibles (1KR-FE, 2SZ-FE, 1ZR-FAE). Entretien économique."
     },
     {
       "brand": "Honda",
-      "engines": ["1.2", "1.3", "1.4", "1.8"],
-      "models": ["Jazz", "Civic"],
+      "engines": ["1.2", "1.3", "1.4", "1.8", "2.0"],
+      "models": ["Civic", "Accord", "Jazz", "CR-V"],
       "reliability_score": 30,
-      "notes": "i-DSI et i-VTEC atmosphériques à chaîne. Référence mondiale de longévité mécanique."
+      "notes": "i-DSI et i-VTEC atmosphériques à chaîne. Référence mondiale de longévité mécanique. Cockpit Civic 8 spacieux et bas pour grand gabarit."
+    },
+    {
+      "brand": "Volvo",
+      "engines": ["1.6", "1.8", "2.0", "2.4", "2.5"],
+      "models": ["C30", "S40", "V50"],
+      "reliability_score": 29,
+      "notes": "Blocs essence atmosphériques partagés avec Ford. Châssis suédois et sièges exceptionnels pour les conducteurs de plus d'1m90."
+    },
+    {
+      "brand": "Volkswagen",
+      "engines": ["1.6"],
+      "models": ["Golf", "Leon", "Octavia", "A3"],
+      "reliability_score": 27,
+      "notes": "Bloc 1.6 MPI 102 ch (8 soupapes sans turbo ni injection directe FSI). Robuste, compatible éthanol, amplitude de réglage siège/volant idéale pour grands gabarits."
+    },
+    {
+      "brand": "Ford",
+      "engines": ["1.6", "1.8", "2.0"],
+      "models": ["Focus", "Mondeo", "C-Max"],
+      "reliability_score": 28,
+      "notes": "Moteurs Duratec essence atmosphériques à courroie ou chaîne. Cockpit spacieux et confortable."
     },
     {
       "brand": "Renault",
-      "engines": ["1.2 16v", "1.4 16v", "1.6 16v", "1.2"],
-      "models": ["Clio", "Twingo", "Modus", "Megane", "Kangoo"],
+      "engines": ["1.6 16v", "2.0 16v", "1.4 16v"],
+      "models": ["Megane", "Laguna", "Scenic", "Clio"],
       "reliability_score": 28,
-      "notes": "Blocs D4F (1.2 16v), K4J (1.4 16v) et K4M (1.6 16v). Pièces abondantes et très peu chères."
-    },
-    {
-      "brand": "Peugeot",
-      "engines": ["1.1", "1.4", "1.6"],
-      "models": ["206", "106", "107", "207"],
-      "reliability_score": 26,
-      "notes": "Moteurs TU atmosphériques uniquement (TU1, TU3, TU5). Rustiques, simples et réparables partout."
-    },
-    {
-      "brand": "Citroen",
-      "engines": ["1.1", "1.4", "1.6"],
-      "models": ["C2", "C3", "Saxo", "C1"],
-      "reliability_score": 26,
-      "notes": "Moteurs TU (C2/C3 phase 1 et 2) et moteur 1.0 Toyota sur C1. Éviter les boîtes Sensodrive."
+      "notes": "Blocs K4M (1.6 16v) et F4R (2.0 16v). Pièces abondantes, très fiables et habitabilité Mégane 3 supérieure aux citadines."
     },
     {
       "brand": "Alfa Romeo",
       "engines": ["1.4"],
       "models": ["Mito"],
       "reliability_score": 27,
-      "notes": "Bloc 1.4 FIRE atmosphérique 70/78/95/105 ch (moteur Fiat éprouvé sans turbo ni système MultiAir)."
+      "notes": "Bloc 1.4 FIRE atmosphérique 70/78/95/105 ch (moteur Fiat éprouvé sans turbo ni système MultiAir). Assise basse sportive."
     },
     {
-      "brand": "Volkswagen",
-      "engines": ["1.6"],
-      "models": ["Golf", "Polo", "Leon", "Ibiza", "A3"],
-      "reliability_score": 27,
-      "notes": "Bloc 1.6 MPI 102 ch (8 soupapes sans turbo ni injection directe FSI). Robuste et compatible éthanol."
-    },
-    {
-      "brand": "Volvo",
-      "engines": ["1.6", "1.8", "2.0"],
-      "models": ["C30", "S40", "V50"],
-      "reliability_score": 28,
-      "notes": "Blocs essence Duratec atmosphériques partagés avec Ford. Très sains et fiables."
-    },
-    {
-      "brand": "Ford",
-      "engines": ["1.25", "1.4", "1.6"],
-      "models": ["Fiesta", "Fusion", "Focus"],
-      "reliability_score": 27,
-      "notes": "Moteurs Duratec / Zetec essence atmosphériques à courroie classique. Simples et fiables."
+      "brand": "Mazda",
+      "engines": ["1.6", "2.0"],
+      "models": ["Mazda 3", "Mazda 6"],
+      "reliability_score": 29,
+      "notes": "Moteurs MZR essence à chaîne de distribution très robustes. Excellente ergonomie de conduite japonaise."
     },
     {
       "brand": "Suzuki",
-      "engines": ["1.3", "1.5"],
-      "models": ["Swift", "Ignis", "Splash"],
+      "engines": ["1.3", "1.5", "1.6"],
+      "models": ["Swift", "SX4"],
       "reliability_score": 28,
-      "notes": "Blocs essence japonais à chaîne. Excellente longévité mécanique."
+      "notes": "Blocs essence japonais à chaîne. Pavillon haut de la Swift offrant une bonne garde au toit."
+    }
+  ],
+  "unfit_models_titan": [
+    {
+      "name": "Citroën C1 / C2 / Saxo",
+      "patterns": ["c1", "c2", "saxo", "ax"],
+      "reason": "Micro-citadines exiguës. Recul de siège insuffisant, garde au toit minimale, colonne de direction non télescopique : genoux bloqués dans le tableau de bord pour un conducteur d'1m93."
+    },
+    {
+      "name": "Peugeot 106 / 107 / 108 / 206",
+      "patterns": ["106", "107", "108", "206", "206+"],
+      "reason": "Pédalier extrêmement étroit et déporté à droite (inconfort majeur avec pointures 44+), colonne de direction fixe ou non réglable en profondeur, habitacle étriqué."
+    },
+    {
+      "name": "Renault Twingo",
+      "patterns": ["twingo"],
+      "reason": "Micro-citadine inadaptée pour grands gabarits (1m93) : manque de recul et de maintien, sécurité passive très limitée sur les phases 1."
+    },
+    {
+      "name": "Toyota Aygo / iQ",
+      "patterns": ["aygo", "iq"],
+      "reason": "Micro-citadines urbaines minimalistes. Conduite insoutenable pour un conducteur de plus d'1m90."
+    },
+    {
+      "name": "Fiat 500 / Seicento / Cinquecento",
+      "patterns": ["fiat 500", "seicento", "cinquecento"],
+      "reason": "Assise trop haute (effet tabouret), garde au toit écrasée et console centrale envahissante gênant le genou droit."
+    },
+    {
+      "name": "Ford Ka",
+      "patterns": ["ford ka", "ka "],
+      "reason": "Micro-citadine trop étroite pour 1m93."
+    },
+    {
+      "name": "Smart Fortwo / Forfour",
+      "patterns": ["smart", "fortwo", "forfour"],
+      "reason": "Micro-citadine inadaptée grand gabarit."
+    },
+    {
+      "name": "Volkswagen Fox / Lupo",
+      "patterns": ["fox", "lupo"],
+      "reason": "Petits modèles d'entrée de gamme trop étriqués pour 1m93."
+    },
+    {
+      "name": "Chevrolet / Daewoo Matiz / Spark",
+      "patterns": ["matiz", "spark"],
+      "reason": "Micro-citadines minuscules inadaptées pour 1m93."
     }
   ],
   "blacklisted_engines": [

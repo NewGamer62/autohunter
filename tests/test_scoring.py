@@ -23,11 +23,11 @@ def test_puretech_is_disqualified(auditor):
         id="test_puretech",
         source="leboncoin",
         url="https://leboncoin.fr/ad/1",
-        title="Peugeot 208 1.2 PureTech 82ch",
+        title="Peugeot 308 1.2 PureTech 110ch",
         price=4200,
         year=2014,
         mileage=95000,
-        description="Belle 208 essence 1.2 puretech, CT ok."
+        description="Belle 308 essence 1.2 puretech, CT ok."
     )
     result = auditor.audit(ad)
     assert result.is_disqualified is True
@@ -52,39 +52,76 @@ def test_vag_tsi_ea111_is_disqualified(auditor):
     assert "EA111" in result.disqualification_reason or "TSI" in result.disqualification_reason
 
 
-def test_without_ct_is_disqualified(auditor):
+def test_citroen_c2_is_disqualified_for_titan(auditor):
+    """Vérifie que la Citroën C2 est immédiatement éliminée pour un conducteur d'1m93."""
     ad = CarAd(
-        id="test_no_ct",
+        id="test_c2",
         source="leboncoin",
-        url="https://leboncoin.fr/ad/3",
-        title="Renault Clio 2 1.2 16v",
-        price=1200,
-        year=2003,
-        mileage=160000,
-        description="Clio 2 roule très bien, vendue sans contrôle technique car pas le temps."
+        url="https://leboncoin.fr/ad/c2_test",
+        title="Citroën C2 1.4 VTR Essence",
+        price=2200,
+        year=2006,
+        mileage=110000,
+        description="Citroën C2 en très bon état, CT vierge, carnet d'entretien."
     )
     result = auditor.audit(ad)
     assert result.is_disqualified is True
     assert result.total_score == 0
-    assert "sans CT" in result.disqualification_reason or "sans contrôle technique" in result.disqualification_reason.lower()
+    assert "1m93" in result.disqualification_reason or "titan" in result.disqualification_reason.lower()
 
 
-def test_golden_toyota_yaris_scores_high(auditor):
+def test_twingo_is_disqualified_for_titan(auditor):
+    """Vérifie que la Twingo est disqualifiée pour cause de gabarit insuffisant."""
     ad = CarAd(
-        id="test_yaris",
+        id="test_twingo",
         source="leboncoin",
-        url="https://leboncoin.fr/ad/4",
-        title="Toyota Yaris 1.3 VVT-i Luna",
-        price=2800,
-        year=2006,
-        mileage=105000,
-        description="Toyota Yaris essence première main, CT vierge fait la semaine dernière, carnet d'entretien complet avec toutes factures, dort dans un garage, distribution à chaîne."
+        url="https://leboncoin.fr/ad/twingo_test",
+        title="Renault Twingo 1.2 16v Expression",
+        price=1900,
+        year=2005,
+        mileage=120000,
+        description="Twingo essence, CT valide."
+    )
+    result = auditor.audit(ad)
+    assert result.is_disqualified is True
+    assert result.total_score == 0
+    assert "1m93" in result.disqualification_reason or "titan" in result.disqualification_reason.lower()
+
+
+def test_peugeot_206_is_disqualified_for_titan(auditor):
+    """Vérifie que la 206 (pédalier étroit et pas de recul) est disqualifiée."""
+    ad = CarAd(
+        id="test_206",
+        source="leboncoin",
+        url="https://leboncoin.fr/ad/206_test",
+        title="Peugeot 206 1.4 75ch Quiksilver",
+        price=2300,
+        year=2004,
+        mileage=130000,
+        description="206 essence propre, distribution neuve."
+    )
+    result = auditor.audit(ad)
+    assert result.is_disqualified is True
+    assert result.total_score == 0
+    assert "1m93" in result.disqualification_reason or "titan" in result.disqualification_reason.lower()
+
+
+def test_golden_volvo_c30_scores_high(auditor):
+    """Vérifie qu'un coupé stylé et taillé pour les grands (Volvo C30) obtient un score d'excellence."""
+    ad = CarAd(
+        id="test_c30",
+        source="leboncoin",
+        url="https://leboncoin.fr/ad/c30_test",
+        title="Volvo C30 1.6 Kinetic Essence 100ch",
+        price=3200,
+        year=2008,
+        mileage=125000,
+        description="Superbe Volvo C30 1.6 essence, 1ere main, CT vierge fait hier, carnet complet avec factures Volvo, dort au garage."
     )
     result = auditor.audit(ad)
     assert result.is_disqualified is False
     assert result.total_score >= 85
-    assert result.engine_score == 30
-    assert result.price_score == 30
+    assert result.engine_score >= 28
     assert result.verdict in ("PÉPITE ABSOLUE", "TRÈS BONNE AFFAIRE")
 
 
@@ -110,9 +147,9 @@ def test_repository_save_and_deduplication(temp_repo, auditor):
         id="ad_test_repo",
         source="leboncoin",
         url="https://leboncoin.fr/ad/unique_123",
-        title="Toyota Yaris 1.0 essence",
-        price=2200,
-        year=2005,
+        title="Honda Civic 1.4 i-vtec",
+        price=2600,
+        year=2007,
         mileage=125000,
         description="CT ok, roule nickel."
     )

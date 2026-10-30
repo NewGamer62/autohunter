@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -23,17 +24,34 @@ class CarAuditor:
                 return json.load(f)
         except Exception as e:
             logger.error(f"Erreur chargement base moteurs {path}: {e}")
-            return {"golden_engines": [], "blacklisted_engines": []}
+            return {"golden_engines": [], "blacklisted_engines": [], "unfit_models_titan": []}
 
     def audit(self, ad: CarAd) -> AuditResult:
         full_text = f"{ad.title} {ad.description}"
         norm_text = normalize_text(full_text)
+        norm_title = normalize_text(ad.title)
 
         pros = []
         cons = []
         warnings = []
         disqualified = False
         disqualify_reason = None
+
+        # -------------------------------------------------------------
+        # AXE 0 : Filtre Morphologie Titan (Conducteur grand gabarit 1m93)
+        # Élimination d'office des micro-citadines exiguës (C1, C2, 107, 206, Twingo, Aygo, etc.)
+        # -------------------------------------------------------------
+        for unfit in self.engines_db.get("unfit_models_titan", []):
+            for pattern in unfit["patterns"]:
+                # Vérification prioritaire sur le titre ou dans le texte
+                pattern_re = r"\b" + re.escape(pattern.strip()) + r"\b"
+                if re.search(pattern_re, norm_title) or re.search(pattern_re, norm_text):
+                    disqualified = True
+                    disqualify_reason = f"Gabarit inadapté grand conducteur (1m93) : {unfit['name']} ({unfit['reason']})"
+                    cons.append(f"INCOMPATIBLE GABARIT TITAN (1m93) : {unfit['name']}")
+                    break
+            if disqualified:
+                break
 
         # -------------------------------------------------------------
         # AXE 1 : Évaluation Financière & Prix (30 points)
@@ -47,7 +65,7 @@ class CarAuditor:
             disqualify_reason = f"Prix suspect ({ad.price} €) : arnaque potentielle ou véhicule donneur de pièces"
         else:
             # Pour un budget max 5000 € :
-            # Les pépites se situent entre 1 500 € et 3 800 € pour des citadines / compactes saines
+            # Les pépites se situent entre 1 500 € et 3 800 € pour des compactes / coupés sains
             if 1500 <= ad.price <= 3500:
                 price_score = 30
                 pros.append(f"Positionnement prix idéal ({ad.price:,.0f} €) : forte marge de rentabilité/revente")
@@ -68,18 +86,19 @@ class CarAuditor:
         engine_identified = False
 
         # 1. Vérification Blacklist stricte
-        for bl in self.engines_db.get("blacklisted_engines", []):
-            for pattern in bl["patterns"]:
-                if pattern in norm_text:
-                    disqualified = True
-                    disqualify_reason = f"Moteur à haut risque de casse : {bl['name']} ({bl['reason']})"
-                    engine_score = 0
-                    cons.append(f"DANGER MÉCANIQUE : {bl['name']}")
+        if not disqualified:
+            for bl in self.engines_db.get("blacklisted_engines", []):
+                for pattern in bl["patterns"]:
+                    if pattern in norm_text:
+                        disqualified = True
+                        disqualify_reason = f"Moteur à haut risque de casse : {bl['name']} ({bl['reason']})"
+                        engine_score = 0
+                        cons.append(f"DANGER MÉCANIQUE : {bl['name']}")
+                        break
+                if disqualified:
                     break
-            if disqualified:
-                break
 
-        # 2. Vérification Golden Engines (si non blacklisté)
+        # 2. Vérification Golden Engines (si non blacklisté et non disqualifié)
         if not disqualified:
             for ge in self.engines_db.get("golden_engines", []):
                 brand_match = ge["brand"].lower() in norm_text
